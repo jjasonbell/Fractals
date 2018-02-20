@@ -2,7 +2,7 @@ library(jsonlite)
 library(anytime)
 library(Quandl)
 source('opt_price_funs.R')
-TICKER <- "MSFT"
+#TICKER <- "BHGE"
 start_date <- '2014-01-01'
 trading_days <- read.csv('trading_days.csv')
 trading_days$date <- as.Date(trading_days$date)
@@ -108,7 +108,7 @@ ratios <- call_table[, 1] / call_table[, 2]
 ratios
 
 kelly_bet <- function(opt_price, strike, budget) {
-    opt_price <- opt_price + 6
+    opt_price <- opt_price  + 12/100
     ITM <- ifelse(final_prices > strike, TRUE, FALSE)
     made_money <- ifelse(final_prices - strike > opt_price, TRUE, FALSE)
     OTM <- ifelse(final_prices <= strike, TRUE, FALSE)
@@ -121,16 +121,17 @@ kelly_bet <- function(opt_price, strike, budget) {
     p <- mean(made_money)
     q <- 1 - p
     mean_gain <- mean(gains, na.rm = T)
-    mean_loss <- mean(losses, na.rm = T)
+    mean_loss <- abs(mean(losses, na.rm = T))
     R <- mean_gain / mean_loss
-    f_star <- p - q / R
+    f_star <- max(0, p - q / R)
+    f_star <- min(f_star, 1)
     return(list(bet = f_star * budget, p = p))
 }
 
 table <- matrix(0, nrow(target_calls), 3)
 table[, 3] <- target_calls$lastPrice * 100
 for(i in 1:nrow(target_calls)) {
-    kb <- kelly_bet(target_calls$lastPrice[i], target_calls$strike[i], 1500)
+    kb <- kelly_bet(target_calls$lastPrice[i], target_calls$strike[i], 1000)
     table[i, 2] <- round(kb$bet)
     table[i, 1] <- round(kb$p, 2)
 }
@@ -143,4 +144,4 @@ which.min(ratios) == length(ratios)
 last_closing_price
 anydate(target_date)
 table[which.min(ratios), 4]
-save.image(paste0(TICKER, '_opt_data.RData'))
+save.image(paste0('~/Documents/Fractals/Data/', TICKER, '_opt_data.RData'))
