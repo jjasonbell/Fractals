@@ -2,7 +2,7 @@ library(jsonlite)
 library(anytime)
 library(Quandl)
 source('opt_price_funs.R')
-#TICKER <- "BHGE"
+TICKER <- "PEP"
 start_date <- '2014-01-01'
 trading_days <- read.csv('trading_days.csv')
 trading_days$date <- as.Date(trading_days$date)
